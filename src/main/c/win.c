@@ -34,20 +34,20 @@ jstring wchar_to_java(JNIEnv* env, const wchar_t* chars, size_t len, jobject res
         mark_failed_with_message(env, "unexpected size of wchar_t", result);
         return NULL;
     }
-    return env->NewString((jchar*)chars, len);
+    return (*env)->NewString(env, (jchar*)chars, len);
 }
 
 wchar_t* java_to_wchar(JNIEnv *env, jstring string, jobject result) {
-    jsize len = env->GetStringLength(string);
+    jsize len = (*env)->GetStringLength(env, string);
     wchar_t* str = (wchar_t*)malloc(sizeof(wchar_t) * (len+1));
-    env->GetStringRegion(string, 0, len, (jchar*)str);
+    (*env)->GetStringRegion(env, string, 0, len, (jchar*)str);
     str[len] = L'\0';
     return str;
 }
 
 JNIEXPORT void JNICALL
 Java_net_rubygrapefruit_platform_internal_jni_NativeLibraryFunctions_getSystemInfo(JNIEnv *env, jclass target, jobject info, jobject result) {
-    jclass infoClass = env->GetObjectClass(info);
+    jclass infoClass = (*env)->GetObjectClass(env, info);
 
     OSVERSIONINFOEX versionInfo;
     versionInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
@@ -60,17 +60,17 @@ Java_net_rubygrapefruit_platform_internal_jni_NativeLibraryFunctions_getSystemIn
     GetNativeSystemInfo(&systemInfo);
     jstring arch = NULL;
     if (systemInfo.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64) {
-        arch = env->NewStringUTF("amd64");
+        arch = (*env)->NewStringUTF(env, "amd64");
     } else if (systemInfo.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_INTEL) {
-        arch = env->NewStringUTF("x86");
+        arch = (*env)->NewStringUTF(env, "x86");
     } else if (systemInfo.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_IA64) {
-        arch = env->NewStringUTF("ia64");
+        arch = (*env)->NewStringUTF(env, "ia64");
     } else {
-        arch = env->NewStringUTF("unknown");
+        arch = (*env)->NewStringUTF(env, "unknown");
     }
 
-    jmethodID method = env->GetMethodID(infoClass, "windows", "(IIIZLjava/lang/String;)V");
-    env->CallVoidMethod(info, method, versionInfo.dwMajorVersion, versionInfo.dwMinorVersion,
+    jmethodID method = (*env)->GetMethodID(env, infoClass, "windows", "(IIIZLjava/lang/String;)V");
+    (*env)->CallVoidMethod(env, info, method, versionInfo.dwMajorVersion, versionInfo.dwMinorVersion,
                         versionInfo.dwBuildNumber, versionInfo.wProductType == VER_NT_WORKSTATION,
                         arch);
 }
@@ -167,8 +167,8 @@ Java_net_rubygrapefruit_platform_internal_jni_PosixProcessFunctions_setEnvironme
 
 JNIEXPORT void JNICALL
 Java_net_rubygrapefruit_platform_internal_jni_PosixFileSystemFunctions_listFileSystems(JNIEnv *env, jclass target, jobject info, jobject result) {
-    jclass info_class = env->GetObjectClass(info);
-    jmethodID method = env->GetMethodID(info_class, "add", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZZ)V");
+    jclass info_class = (*env)->GetObjectClass(env, info);
+    jmethodID method = (*env)->GetMethodID(env, info_class, "add", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZZ)V");
 
     DWORD required = GetLogicalDriveStringsW(0, NULL);
     if (required == 0) {
@@ -239,7 +239,7 @@ Java_net_rubygrapefruit_platform_internal_jni_PosixFileSystemFunctions_listFileS
                 }
             }
 
-            env->CallVoidMethod(info, method,
+            (*env)->CallVoidMethod(env, info, method,
                                 wchar_to_java(env, cur, wcslen(cur), result),
                                 wchar_to_java(env, fileSystemName, wcslen(fileSystemName), result),
                                 wchar_to_java(env, deviceName, wcslen(deviceName), result),
@@ -267,12 +267,12 @@ Java_net_rubygrapefruit_platform_internal_jni_FileEventFunctions_createWatch(JNI
     }
     watch_details_t* details = (watch_details_t*)malloc(sizeof(watch_details_t));
     details->watch_handle = h;
-    return env->NewDirectByteBuffer(details, sizeof(watch_details_t));
+    return (*env)->NewDirectByteBuffer(env, details, sizeof(watch_details_t));
 }
 
 JNIEXPORT jboolean JNICALL
 Java_net_rubygrapefruit_platform_internal_jni_FileEventFunctions_waitForNextEvent(JNIEnv *env, jclass target, jobject handle, jobject result) {
-    watch_details_t* details = (watch_details_t*)env->GetDirectBufferAddress(handle);
+    watch_details_t* details = (watch_details_t*)(*env)->GetDirectBufferAddress(env, handle);
     if (WaitForSingleObject(details->watch_handle, INFINITE) == WAIT_FAILED) {
         mark_failed_with_errno(env, "could not wait for change notification", result);
         return JNI_FALSE;
@@ -290,16 +290,16 @@ Java_net_rubygrapefruit_platform_internal_jni_FileEventFunctions_waitForNextEven
 
 JNIEXPORT void JNICALL
 Java_net_rubygrapefruit_platform_internal_jni_FileEventFunctions_closeWatch(JNIEnv *env, jclass target, jobject handle, jobject result) {
-    watch_details_t* details = (watch_details_t*)env->GetDirectBufferAddress(handle);
+    watch_details_t* details = (watch_details_t*)(*env)->GetDirectBufferAddress(env, handle);
     FindCloseChangeNotification(details->watch_handle);
     free(details);
 }
 
 JNIEXPORT void JNICALL
 Java_net_rubygrapefruit_platform_internal_jni_WindowsFileFunctions_stat(JNIEnv *env, jclass target, jstring path, jobject dest, jobject result) {
-    jclass destClass = env->GetObjectClass(dest);
-    jfieldID typeField = env->GetFieldID(destClass, "type", "I");
-    jfieldID sizeField = env->GetFieldID(destClass, "size", "J");
+    jclass destClass = (*env)->GetObjectClass(env, dest);
+    jfieldID typeField = (*env)->GetFieldID(env, destClass, "type", "I");
+    jfieldID sizeField = (*env)->GetFieldID(env, destClass, "size", "J");
 
     WIN32_FILE_ATTRIBUTE_DATA attr;
     wchar_t* pathStr = java_to_wchar(env, path, result);
@@ -308,18 +308,18 @@ Java_net_rubygrapefruit_platform_internal_jni_WindowsFileFunctions_stat(JNIEnv *
     if (!ok) {
         DWORD error = GetLastError();
         if (error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND) {
-            env->SetIntField(dest, typeField, FILE_TYPE_MISSING);
+            (*env)->SetIntField(env, dest, typeField, FILE_TYPE_MISSING);
             return;
         }
         mark_failed_with_errno(env, "could not file attributes", result);
         return;
     }
     if (attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-        env->SetIntField(dest, typeField, FILE_TYPE_DIRECTORY);
+        (*env)->SetIntField(env, dest, typeField, FILE_TYPE_DIRECTORY);
     } else {
-        env->SetIntField(dest, typeField, FILE_TYPE_FILE);
+        (*env)->SetIntField(env, dest, typeField, FILE_TYPE_FILE);
         DWORD64 size = (attr.nFileSizeLow << 32) | attr.nFileSizeLow;
-        env->SetLongField(dest, sizeField, size);
+        (*env)->SetLongField(env, dest, sizeField, size);
     }
 }
 
@@ -366,11 +366,11 @@ Java_net_rubygrapefruit_platform_internal_jni_WindowsConsoleFunctions_getConsole
         return;
     }
 
-    jclass dimensionClass = env->GetObjectClass(dimension);
-    jfieldID widthField = env->GetFieldID(dimensionClass, "cols", "I");
-    env->SetIntField(dimension, widthField, console_info.srWindow.Right - console_info.srWindow.Left + 1);
-    jfieldID heightField = env->GetFieldID(dimensionClass, "rows", "I");
-    env->SetIntField(dimension, heightField, console_info.srWindow.Bottom - console_info.srWindow.Top + 1);
+    jclass dimensionClass = (*env)->GetObjectClass(env, dimension);
+    jfieldID widthField = (*env)->GetFieldID(env, dimensionClass, "cols", "I");
+    (*env)->SetIntField(env, dimension, widthField, console_info.srWindow.Right - console_info.srWindow.Left + 1);
+    jfieldID heightField = (*env)->GetFieldID(env, dimensionClass, "rows", "I");
+    (*env)->SetIntField(env, dimension, heightField, console_info.srWindow.Bottom - console_info.srWindow.Top + 1);
 }
 
 HANDLE current_console = NULL;
@@ -604,8 +604,8 @@ Java_net_rubygrapefruit_platform_internal_jni_WindowsRegistryFunctions_getString
 JNIEXPORT jboolean JNICALL
 Java_net_rubygrapefruit_platform_internal_jni_WindowsRegistryFunctions_getSubkeys(JNIEnv *env, jclass target, jint keyNum, jstring subkey, jobject subkeys, jobject result) {
     wchar_t* subkeyStr = java_to_wchar(env, subkey, result);
-    jclass subkeys_class = env->GetObjectClass(subkeys);
-    jmethodID method = env->GetMethodID(subkeys_class, "add", "(Ljava/lang/Object;)Z");
+    jclass subkeys_class = (*env)->GetObjectClass(env, subkeys);
+    jmethodID method = (*env)->GetMethodID(env, subkeys_class, "add", "(Ljava/lang/Object;)Z");
 
     HKEY key;
     LONG retval = RegOpenKeyExW(get_key_from_ordinal(keyNum), subkeyStr, 0, KEY_READ, &key);
@@ -631,7 +631,7 @@ Java_net_rubygrapefruit_platform_internal_jni_WindowsRegistryFunctions_getSubkey
                 mark_failed_with_code(env, "could enumerate registry subkey", retval, NULL, result);
                 break;
             }
-            env->CallVoidMethod(subkeys, method, wchar_to_java(env, keyNameStr, wcslen(keyNameStr), result));
+            (*env)->CallVoidMethod(env, subkeys, method, wchar_to_java(env, keyNameStr, wcslen(keyNameStr), result));
         }
         free(keyNameStr);
     }
@@ -644,8 +644,8 @@ Java_net_rubygrapefruit_platform_internal_jni_WindowsRegistryFunctions_getSubkey
 JNIEXPORT jboolean JNICALL
 Java_net_rubygrapefruit_platform_internal_jni_WindowsRegistryFunctions_getValueNames(JNIEnv *env, jclass target, jint keyNum, jstring subkey, jobject names, jobject result) {
     wchar_t* subkeyStr = java_to_wchar(env, subkey, result);
-    jclass names_class = env->GetObjectClass(names);
-    jmethodID method = env->GetMethodID(names_class, "add", "(Ljava/lang/Object;)Z");
+    jclass names_class = (*env)->GetObjectClass(env, names);
+    jmethodID method = (*env)->GetMethodID(env, names_class, "add", "(Ljava/lang/Object;)Z");
 
     HKEY key;
     LONG retval = RegOpenKeyExW(get_key_from_ordinal(keyNum), subkeyStr, 0, KEY_READ, &key);
@@ -671,7 +671,7 @@ Java_net_rubygrapefruit_platform_internal_jni_WindowsRegistryFunctions_getValueN
                 mark_failed_with_code(env, "could enumerate registry value name", retval, NULL, result);
                 break;
             }
-            env->CallVoidMethod(names, method, wchar_to_java(env, valueNameStr, wcslen(valueNameStr), result));
+            (*env)->CallVoidMethod(env, names, method, wchar_to_java(env, valueNameStr, wcslen(valueNameStr), result));
         }
         free(valueNameStr);
     }

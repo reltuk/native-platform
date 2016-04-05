@@ -67,12 +67,12 @@ Java_net_rubygrapefruit_platform_internal_jni_FileEventFunctions_createWatch(JNI
     watch_details_t* details = (watch_details_t*)malloc(sizeof(watch_details_t));
     details->watch_fd = watch_fd;
     details->target_fd = event_fd;
-    return env->NewDirectByteBuffer(details, sizeof(watch_details_t));
+    return (*env)->NewDirectByteBuffer(env, details, sizeof(watch_details_t));
 }
 
 JNIEXPORT jboolean JNICALL
 Java_net_rubygrapefruit_platform_internal_jni_FileEventFunctions_waitForNextEvent(JNIEnv *env, jclass target, jobject handle, jobject result) {
-    watch_details_t* details = (watch_details_t*)env->GetDirectBufferAddress(handle);
+    watch_details_t* details = (watch_details_t*)(*env)->GetDirectBufferAddress(env, handle);
     struct kevent event;
     int event_count = kevent(details->watch_fd, NULL, 0, &event, 1, NULL);
     if (event_count < 0 && errno == EINTR) {
@@ -87,7 +87,7 @@ Java_net_rubygrapefruit_platform_internal_jni_FileEventFunctions_waitForNextEven
 
 JNIEXPORT void JNICALL
 Java_net_rubygrapefruit_platform_internal_jni_FileEventFunctions_closeWatch(JNIEnv *env, jclass target, jobject handle, jobject result) {
-    watch_details_t* details = (watch_details_t*)env->GetDirectBufferAddress(handle);
+    watch_details_t* details = (watch_details_t*)(*env)->GetDirectBufferAddress(env, handle);
     close(details->target_fd);
     close(details->watch_fd);
     free(details);

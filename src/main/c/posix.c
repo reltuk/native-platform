@@ -31,7 +31,7 @@
 
 JNIEXPORT void JNICALL
 Java_net_rubygrapefruit_platform_internal_jni_NativeLibraryFunctions_getSystemInfo(JNIEnv *env, jclass target, jobject info, jobject result) {
-    jclass infoClass = env->GetObjectClass(info);
+    jclass infoClass = (*env)->GetObjectClass(env, info);
 
     struct utsname machine_info;
     if (uname(&machine_info) != 0) {
@@ -39,23 +39,23 @@ Java_net_rubygrapefruit_platform_internal_jni_NativeLibraryFunctions_getSystemIn
         return;
     }
 
-    jfieldID osNameField = env->GetFieldID(infoClass, "osName", "Ljava/lang/String;");
-    env->SetObjectField(info, osNameField, char_to_java(env, machine_info.sysname, result));
-    jfieldID osVersionField = env->GetFieldID(infoClass, "osVersion", "Ljava/lang/String;");
-    env->SetObjectField(info, osVersionField, char_to_java(env, machine_info.release, result));
-    jfieldID machineArchitectureField = env->GetFieldID(infoClass, "machineArchitecture", "Ljava/lang/String;");
-    env->SetObjectField(info, machineArchitectureField, char_to_java(env, machine_info.machine, result));
+    jfieldID osNameField = (*env)->GetFieldID(env, infoClass, "osName", "Ljava/lang/String;");
+    (*env)->SetObjectField(env, info, osNameField, char_to_java(env, machine_info.sysname, result));
+    jfieldID osVersionField = (*env)->GetFieldID(env, infoClass, "osVersion", "Ljava/lang/String;");
+    (*env)->SetObjectField(env, info, osVersionField, char_to_java(env, machine_info.release, result));
+    jfieldID machineArchitectureField = (*env)->GetFieldID(env, infoClass, "machineArchitecture", "Ljava/lang/String;");
+    (*env)->SetObjectField(env, info, machineArchitectureField, char_to_java(env, machine_info.machine, result));
 }
 
 JNIEXPORT void JNICALL
 Java_net_rubygrapefruit_platform_internal_jni_PosixTypeFunctions_getNativeTypeInfo(JNIEnv *env, jclass target, jobject info) {
-    jclass infoClass = env->GetObjectClass(info);
-    env->SetIntField(info, env->GetFieldID(infoClass, "int_bytes", "I"), sizeof(int));
-    env->SetIntField(info, env->GetFieldID(infoClass, "u_long_bytes", "I"), sizeof(u_long));
-    env->SetIntField(info, env->GetFieldID(infoClass, "size_t_bytes", "I"), sizeof(size_t));
-    env->SetIntField(info, env->GetFieldID(infoClass, "uid_t_bytes", "I"), sizeof(uid_t));
-    env->SetIntField(info, env->GetFieldID(infoClass, "gid_t_bytes", "I"), sizeof(gid_t));
-    env->SetIntField(info, env->GetFieldID(infoClass, "off_t_bytes", "I"), sizeof(off_t));
+    jclass infoClass = (*env)->GetObjectClass(env, info);
+    (*env)->SetIntField(env, info, (*env)->GetFieldID(env, infoClass, "int_bytes", "I"), sizeof(int));
+    (*env)->SetIntField(env, info, (*env)->GetFieldID(env, infoClass, "u_long_bytes", "I"), sizeof(u_long));
+    (*env)->SetIntField(env, info, (*env)->GetFieldID(env, infoClass, "size_t_bytes", "I"), sizeof(size_t));
+    (*env)->SetIntField(env, info, (*env)->GetFieldID(env, infoClass, "uid_t_bytes", "I"), sizeof(uid_t));
+    (*env)->SetIntField(env, info, (*env)->GetFieldID(env, infoClass, "gid_t_bytes", "I"), sizeof(gid_t));
+    (*env)->SetIntField(env, info, (*env)->GetFieldID(env, infoClass, "off_t_bytes", "I"), sizeof(off_t));
 }
 
 /*
@@ -93,21 +93,21 @@ Java_net_rubygrapefruit_platform_internal_jni_PosixFileFunctions_stat(JNIEnv *en
         return;
     }
 
-    jclass destClass = env->GetObjectClass(dest);
-    jfieldID modeField = env->GetFieldID(destClass, "mode", "I");
-    jfieldID typeField = env->GetFieldID(destClass, "type", "I");
-    jfieldID sizeField = env->GetFieldID(destClass, "size", "J");
-    jfieldID uidField = env->GetFieldID(destClass, "uid", "I");
-    jfieldID gidField = env->GetFieldID(destClass, "gid", "I");
-    jfieldID blockSizeField = env->GetFieldID(destClass, "blockSize", "J");
-    jfieldID accessTimeField = env->GetFieldID(destClass, "accessTime", "J");
-    jfieldID modificationTimeField = env->GetFieldID(destClass, "modificationTime", "J");
-    jfieldID statusChangeTime = env->GetFieldID(destClass, "statusChangeTime", "J");
+    jclass destClass = (*env)->GetObjectClass(env, dest);
+    jfieldID modeField = (*env)->GetFieldID(env, destClass, "mode", "I");
+    jfieldID typeField = (*env)->GetFieldID(env, destClass, "type", "I");
+    jfieldID sizeField = (*env)->GetFieldID(env, destClass, "size", "J");
+    jfieldID uidField = (*env)->GetFieldID(env, destClass, "uid", "I");
+    jfieldID gidField = (*env)->GetFieldID(env, destClass, "gid", "I");
+    jfieldID blockSizeField = (*env)->GetFieldID(env, destClass, "blockSize", "J");
+    jfieldID accessTimeField = (*env)->GetFieldID(env, destClass, "accessTime", "J");
+    jfieldID modificationTimeField = (*env)->GetFieldID(env, destClass, "modificationTime", "J");
+    jfieldID statusChangeTime = (*env)->GetFieldID(env, destClass, "statusChangeTime", "J");
 
     if (retval != 0) {
-        env->SetIntField(dest, typeField, FILE_TYPE_MISSING);
+        (*env)->SetIntField(env, dest, typeField, FILE_TYPE_MISSING);
     } else {
-        env->SetIntField(dest, modeField, 0777 & fileInfo.st_mode);
+        (*env)->SetIntField(env, dest, modeField, 0777 & fileInfo.st_mode);
         int type;
         switch (fileInfo.st_mode & S_IFMT) {
             case S_IFREG:
@@ -122,19 +122,19 @@ Java_net_rubygrapefruit_platform_internal_jni_PosixFileFunctions_stat(JNIEnv *en
             default:
                 type= FILE_TYPE_OTHER;
         }
-        env->SetIntField(dest, typeField, type);
-        env->SetIntField(dest, uidField, fileInfo.st_uid);
-        env->SetIntField(dest, gidField, fileInfo.st_gid);
-        env->SetLongField(dest, sizeField, fileInfo.st_size);
-        env->SetLongField(dest, blockSizeField, fileInfo.st_blksize);
+        (*env)->SetIntField(env, dest, typeField, type);
+        (*env)->SetIntField(env, dest, uidField, fileInfo.st_uid);
+        (*env)->SetIntField(env, dest, gidField, fileInfo.st_gid);
+        (*env)->SetLongField(env, dest, sizeField, fileInfo.st_size);
+        (*env)->SetLongField(env, dest, blockSizeField, fileInfo.st_blksize);
 #ifdef __linux__
-        env->SetLongField(dest, accessTimeField, fileInfo.st_atime * 1000);
-        env->SetLongField(dest, modificationTimeField, fileInfo.st_mtime * 1000);
-        env->SetLongField(dest, statusChangeTime, fileInfo.st_ctime * 1000);
+        (*env)->SetLongField(env, dest, accessTimeField, fileInfo.st_atime * 1000);
+        (*env)->SetLongField(env, dest, modificationTimeField, fileInfo.st_mtime * 1000);
+        (*env)->SetLongField(env, dest, statusChangeTime, fileInfo.st_ctime * 1000);
 #else
-        env->SetLongField(dest, accessTimeField, timestamp(fileInfo.st_atimespec));
-        env->SetLongField(dest, modificationTimeField, timestamp(fileInfo.st_mtimespec));
-        env->SetLongField(dest, statusChangeTime, timestamp(fileInfo.st_ctimespec));
+        (*env)->SetLongField(env, dest, accessTimeField, timestamp(fileInfo.st_atimespec));
+        (*env)->SetLongField(env, dest, modificationTimeField, timestamp(fileInfo.st_mtimespec));
+        (*env)->SetLongField(env, dest, statusChangeTime, timestamp(fileInfo.st_ctimespec));
 #endif
     }
 }
@@ -278,11 +278,11 @@ Java_net_rubygrapefruit_platform_internal_jni_PosixTerminalFunctions_getTerminal
         mark_failed_with_errno(env, "could not fetch terminal size", result);
         return;
     }
-    jclass dimensionClass = env->GetObjectClass(dimension);
-    jfieldID widthField = env->GetFieldID(dimensionClass, "cols", "I");
-    env->SetIntField(dimension, widthField, screen_size.ws_col);
-    jfieldID heightField = env->GetFieldID(dimensionClass, "rows", "I");
-    env->SetIntField(dimension, heightField, screen_size.ws_row);
+    jclass dimensionClass = (*env)->GetObjectClass(env, dimension);
+    jfieldID widthField = (*env)->GetFieldID(env, dimensionClass, "cols", "I");
+    (*env)->SetIntField(env, dimension, widthField, screen_size.ws_col);
+    jfieldID heightField = (*env)->GetFieldID(env, dimensionClass, "rows", "I");
+    (*env)->SetIntField(env, dimension, heightField, screen_size.ws_row);
 }
 
 #endif

@@ -18,6 +18,7 @@
 #define __INCLUDE_GENERIC_H__
 
 #include <jni.h>
+#include <wchar.h>
 
 #ifdef __cplusplus
 extern "C" {

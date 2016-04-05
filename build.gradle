@@ -1,5 +1,5 @@
 apply plugin: 'groovy'
-apply plugin: 'cpp'
+apply plugin: 'c'
 
 allprojects {
     apply plugin: 'java'
@@ -111,6 +111,14 @@ model {
             operatingSystem "freebsd"
         }
     }
+    toolChains {
+        gcc(Gcc) {
+            linker.executable = 'gcc'
+        }
+        clang(Clang) {
+            linker.executable = 'clang'
+        }
+    }
 }
 
 libraries {
@@ -128,23 +136,23 @@ libraries {
     all {
         binaries.all {
             if (targetPlatform.operatingSystem.macOsX) {
-                cppCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include"
-                cppCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include/darwin"
-                cppCompiler.args '-mmacosx-version-min=10.4'
+                cCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include"
+                cCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include/darwin"
+                cCompiler.args '-mmacosx-version-min=10.4'
                 linker.args '-mmacosx-version-min=10.4'
             } else if (targetPlatform.operatingSystem.linux) {
-                cppCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include"
-                cppCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include/linux"
+                cCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include"
+                cCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include/linux"
             } else if (targetPlatform.operatingSystem.windows) {
-                cppCompiler.args "-I${org.gradle.internal.jvm.Jvm.current().javaHome}/include"
-                cppCompiler.args "-I${org.gradle.internal.jvm.Jvm.current().javaHome}/include/win32"
+                cCompiler.args "-I${org.gradle.internal.jvm.Jvm.current().javaHome}/include"
+                cCompiler.args "-I${org.gradle.internal.jvm.Jvm.current().javaHome}/include/win32"
                 linker.args "Shlwapi.lib", "Advapi32.lib"
             } else if (targetPlatform.operatingSystem.freeBSD) {
-                cppCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include"
-                cppCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include/freebsd"
+                cCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include"
+                cCompiler.args '-I', "${org.gradle.internal.jvm.Jvm.current().javaHome}/include/freebsd"
             }
-            cppCompiler.args "-I${nativeHeadersDir}"
-            tasks.withType(CppCompile) { task ->
+            cCompiler.args "-I${nativeHeadersDir}"
+            tasks.withType(CCompile) { task ->
                 task.dependsOn nativeHeaders
             }
         }
@@ -153,14 +161,14 @@ libraries {
 
 sources {
     nativePlatform {
-        cpp {
-            source.srcDirs = ['src/shared/cpp', 'src/main/cpp']
+        c {
+            source.srcDirs = ['src/shared/c', 'src/main/c']
             exportedHeaders.srcDirs = ['src/shared/headers']
         }
     }
     nativePlatformCurses {
-        cpp {
-            source.srcDirs = ['src/shared/cpp', 'src/curses/cpp']
+        c {
+            source.srcDirs = ['src/shared/c', 'src/curses/c']
             exportedHeaders.srcDirs = ['src/shared/headers']
         }
     }

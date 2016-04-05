@@ -26,14 +26,14 @@
 #include <wchar.h>
 
 char* java_to_char(JNIEnv *env, jstring string, jobject result) {
-    size_t stringLen = env->GetStringLength(string);
+    size_t stringLen = (*env)->GetStringLength(env, string);
     wchar_t* wideString = (wchar_t*)malloc(sizeof(wchar_t) * (stringLen+1));
-    const jchar* javaString = env->GetStringChars(string, NULL);
+    const jchar* javaString = (*env)->GetStringChars(env, string, NULL);
     for (size_t i = 0; i < stringLen; i++) {
         wideString[i] = javaString[i];
     }
     wideString[stringLen] = L'\0';
-    env->ReleaseStringChars(string, javaString);
+    (*env)->ReleaseStringChars(env, string, javaString);
 
     size_t bytes = wcstombs(NULL, wideString, 0);
     if (bytes == (size_t)-1) {
@@ -62,7 +62,7 @@ jstring char_to_java(JNIEnv* env, const char* chars, jobject result) {
     for (int i =0; i < stringLen; i++) {
         javaString[i] = (jchar)wideString[i];
     }
-    jstring string = env->NewString(javaString, stringLen);
+    jstring string = (*env)->NewString(env, javaString, stringLen);
     free(wideString);
     free(javaString);
     return string;

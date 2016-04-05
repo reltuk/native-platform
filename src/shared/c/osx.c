@@ -26,16 +26,16 @@
 #include <wchar.h>
 
 char* java_to_char(JNIEnv *env, jstring string, jobject result) {
-    size_t len = env->GetStringLength(string);
-    size_t bytes = env->GetStringUTFLength(string);
+    size_t len = (*env)->GetStringLength(env, string);
+    size_t bytes = (*env)->GetStringUTFLength(env, string);
     char* chars = (char*)malloc(bytes + 1);
-    env->GetStringUTFRegion(string, 0, len, chars);
+    (*env)->GetStringUTFRegion(env, string, 0, len, chars);
     chars[bytes] = 0;
     return chars;
 }
 
 jstring char_to_java(JNIEnv* env, const char* chars, jobject result) {
-    return env->NewStringUTF(chars);
+    return (*env)->NewStringUTF(env, chars);
 }
 
 #endif

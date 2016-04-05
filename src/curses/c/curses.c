@@ -106,21 +106,21 @@ Java_net_rubygrapefruit_platform_internal_jni_TerminfoFunctions_initTerminal(JNI
             return;
         }
 
-        jclass destClass = env->GetObjectClass(capabilities);
-        jfieldID field = env->GetFieldID(destClass, "terminalName", "Ljava/lang/String;");
+        jclass destClass = (*env)->GetObjectClass(env, capabilities);
+        jfieldID field = (*env)->GetFieldID(env, destClass, "terminalName", "Ljava/lang/String;");
         jstring jtermType = char_to_java(env, termType, result);
-        env->SetObjectField(capabilities, field, jtermType);
+        (*env)->SetObjectField(env, capabilities, field, jtermType);
 
         // Text attributes
         terminal_capabilities[NORMAL_TEXT] = getcap("me");
         terminal_capabilities[BRIGHT_TEXT] = getcap("md");
-        field = env->GetFieldID(destClass, "textAttributes", "Z");
-        env->SetBooleanField(capabilities, field, terminal_capabilities[NORMAL_TEXT] != NULL && terminal_capabilities[BRIGHT_TEXT] != NULL);
+        field = (*env)->GetFieldID(env, destClass, "textAttributes", "Z");
+        (*env)->SetBooleanField(env, capabilities, field, terminal_capabilities[NORMAL_TEXT] != NULL && terminal_capabilities[BRIGHT_TEXT] != NULL);
 
         // Colors
         terminal_capabilities[FOREGROUND_COLOR] = getcap("AF");
-        field = env->GetFieldID(destClass, "colors", "Z");
-        env->SetBooleanField(capabilities, field, terminal_capabilities[FOREGROUND_COLOR] != NULL);
+        field = (*env)->GetFieldID(env, destClass, "colors", "Z");
+        (*env)->SetBooleanField(env, capabilities, field, terminal_capabilities[FOREGROUND_COLOR] != NULL);
 
         // Cursor motion
         terminal_capabilities[CURSOR_UP] = getcap("up");
@@ -129,8 +129,8 @@ Java_net_rubygrapefruit_platform_internal_jni_TerminfoFunctions_initTerminal(JNI
         terminal_capabilities[CURSOR_RIGHT] = getcap("nd");
         terminal_capabilities[CURSOR_START_LINE] = getcap("cr");
         terminal_capabilities[CLEAR_END_OF_LINE] = getcap("ce");
-        field = env->GetFieldID(destClass, "cursorMotion", "Z");
-        env->SetBooleanField(capabilities, field, terminal_capabilities[CURSOR_UP] != NULL
+        field = (*env)->GetFieldID(env, destClass, "cursorMotion", "Z");
+        (*env)->SetBooleanField(env, capabilities, field, terminal_capabilities[CURSOR_UP] != NULL
                                 && terminal_capabilities[CURSOR_DOWN] != NULL
                                 && terminal_capabilities[CURSOR_RIGHT] != NULL
                                 && terminal_capabilities[CURSOR_LEFT] != NULL
